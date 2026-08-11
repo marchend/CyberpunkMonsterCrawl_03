@@ -147,6 +147,20 @@ contract) is partially open under CYBERPUN-16-1:**
   `SheetRowContentTests` and `BuildingSetTests` go further and assert facts
   about the *pixels* (transparent inter-tile gutters, no blank direction row,
   real corner alpha rather than `CGImage.alphaInfo`).
+- **CYBERPUN-16-1-t4** adds the ticket's own explicit, adversarial gate suite
+  on top of the above (test-only, no production code changes):
+  `AtlasSheetDimensionTests` (one named test per sheet against the ticket's
+  table), `AtlasCellBoundsTests` (every family's every declared index resolves
+  in-bounds, plus an explicit one-row/one-col/negative out-of-range probe per
+  family checked against both the type and the loader), `TextureFilteringGateTests`
+  (catalog-wide nearest-filtering/no-mipmaps sweep over every sheet, cell,
+  ground diamond, and building -- buildings loaded through
+  `AtlasTextureLoader` even though production code does not route them
+  through it today), and `MissingAssetNegativeTests` (proves the throwing
+  mechanism itself against a synthetic bogus id; the dimension/building
+  sweeps above are what actually fail if a *real* id is deleted or renamed).
+  `ImageAlphaInspector` is the new minimal pixel-alpha helper those gates use
+  alongside `PixelProbe`.
 - **The measurement pass is still outstanding.** Every family declares an
   `AssetProvenance` mirroring the manifest's `provenance` — `.declared` or
   `.unmeasured`, never `.measured` — and a tripwire test fails if one claims
