@@ -1,0 +1,14 @@
+{
+  "images" : [
+    {
+      "idiom" : "universal",
+      "filename" : "../_ImportedPack/assets/pixelgrit/sprite_player_weapons.png",
+      "scale" : "1x",
+      "compression-type" : "none"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

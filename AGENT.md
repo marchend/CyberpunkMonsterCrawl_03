@@ -41,12 +41,41 @@ CyberpunkMonsterCrawl/
     CyberpunkMonsterCrawlApp.swift           — @main app entry, legacy AppDelegate.window lifecycle (implemented)
     GameViewController.swift                 — hosts an empty SKView/SKScene — SCAFFOLDING(CYBERPUN-16-1)
   Assets.xcassets/
-    Contents.json                            — catalog root; NO imagesets yet, see "Open gates" below
+    Contents.json                            — catalog root
     AppIcon.appiconset/Contents.json         — stub icon set, satisfies ASSETCATALOG_COMPILER_APPICON_NAME
+    Sprites/                                 — 10 atlas-sheet imagesets (grouping folder only, CYBERPUN-16-1-t2)
+      <name>.imageset/Contents.json          — 1x-only, filename points into sibling _ImportedPack/ (see below)
+      _ImportedPack/assets/pixelgrit/*.png   — the real bytes; gitignored except the 10 wanted sheets
+    Buildings/                               — 12 whole-building-sprite imagesets (CYBERPUN-16-1-t2)
+      building_00.imageset … building_11.imageset/Contents.json — 1x-only, same referencing scheme
+      _ImportedPack/assets/pixelgrit/buildings/*.png — the real bytes; gitignored except the 12 buildings
   PrivacyInfo.xcprivacy, *.entitlements      — structural stubs (implemented)
 CyberpunkMonsterCrawlTests/
   BootstrapSmokeTests.swift                  — one smoke test — SCAFFOLDING(CYBERPUN-16-1)
 ```
+
+## Asset pack import (CYBERPUN-16-1-t2) — why `Contents.json` points at `../_ImportedPack/…`
+The workspace tooling used to land the attached asset pack can only
+safe-extract a **whole** zip (no single-member extraction) and has no way to
+move/rename a freshly-extracted, not-yet-git-tracked binary file. The pack's
+10 sprite sheets are flat siblings inside one `assets/pixelgrit/` folder in
+the zip, but the asset catalog needs each in its own `<name>.imageset/`
+folder — that split requires a real file move, which wasn't available
+without committing an intermediate state (out of scope for that PR). The
+workaround: extract the pack once per group into a sibling `_ImportedPack/`
+folder (`Sprites/_ImportedPack/`, `Buildings/_ImportedPack/`), then have each
+`Contents.json` reference its real file with a relative `filename` that walks
+back into that folder (e.g. `"../_ImportedPack/assets/pixelgrit/sprite_player_walk.png"`)
+instead of a same-directory bare filename. `.gitignore` strips everything
+`_ImportedPack/` doesn't need (the `assets/screens/` mockups,
+`tileset_structure.png`, and the sibling group's files) so only the 10 (or
+12) wanted PNGs are ever committed.
+**This is unverified against a real `actool` build** (no local Xcode in this
+workspace) — if the `ios-build` CI workflow fails on these catalogs, the fix
+is to physically flatten each `_ImportedPack` entry into its own
+`<name>.imageset/` folder via `git mv` (now safe, since the pack is
+committed and tracked) and drop the relative-path `filename`s back to bare
+names.
 
 ## Info.plist ownership (single source of truth)
 `project.yml` → `targets.CyberpunkMonsterCrawl.info` is the **only** source of
@@ -60,20 +89,20 @@ on the next `./setup.sh`.
 
 ## Open gates — NOT delivered by the bootstrap scaffold
 The current tree is the app-shell story only. **Product gate #2 (the asset
-contract) is still OPEN under CYBERPUN-16-1** and is not satisfied by this
-scaffold:
-- `Assets.xcassets/` holds only its root `Contents.json` plus the stub
-  `AppIcon.appiconset` — there are **no** atlas sheets and **no** building
-  imagesets. No art PNG (`sprite_player_walk`, `tileset_ground`, …) exists in
-  the repo yet.
-- No code records the measured asset facts (10 atlas sheets with their
-  dimensions and cell grids, 12 building imagesets, one owning list per sprite
-  family), and no test fails when a referenced image id is missing from the
-  catalog.
+contract) is partially open under CYBERPUN-16-1:**
+- `Assets.xcassets/Sprites/` and `Assets.xcassets/Buildings/` now hold all 10
+  atlas-sheet imagesets and all 12 building imagesets (CYBERPUN-16-1-t2, pure
+  asset import, no Swift code) — see "Asset pack import" above for the
+  `_ImportedPack/` referencing scheme this required.
+- No code yet records the measured asset facts (10 atlas sheets with their
+  dimensions and cell grids, one owning list per sprite family), and no test
+  fails when a referenced image id or cell is missing from the catalog. That
+  measurement + negative-test work is CYBERPUN-16-1's next PR (PR 4), which
+  explicitly depends on this import PR merging first.
 Until that negative test exists, a green suite says nothing about the catalog —
 this is the exact v1 failure class called out in `docs/bootstrap.md` → "Key
-contracts to establish first" #1. Do not mark the asset gate done on the
-strength of this scaffold.
+contracts to establish first" #1. Do not mark the asset gate fully done on the
+strength of the import alone.
 
 ## `SCAFFOLDING(<ticket>)` markers
 Temporary bootstrap code carries a `SCAFFOLDING(<ticket>)` comment naming the
