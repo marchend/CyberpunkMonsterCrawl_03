@@ -1,10 +1,17 @@
 import CoreGraphics
 
-/// `sprite_signs.png` -- measured 192x144, sliced on a 48x48 cell grid: 4
-/// columns x 3 rows = 12 rooftop neon-sign cells.
+/// `sprite_signs.png` -- 192x144, sliced on a 48x48 cell grid: 4 columns x 3
+/// rows = 12 rooftop neon-sign cells.
+///
+/// PROVENANCE: `unmeasured` -- `docs/asset_manifest.json` records
+/// `sprite_signs` with null dimensions ("no dimensions stated anywhere - must
+/// be measured"), so 192x144 and the 4x3 grid are pinned working values, not
+/// measurements; see `AssetProvenance` and the declared-vs-actual sweep in
+/// `AtlasTextureLoaderTests`.
 struct SignAtlas: AtlasFamily {
     static let sheetName = "sprite_signs"
     static let sheetSize = CGSize(width: 192, height: 144)
+    static let sheetSizeProvenance = AssetProvenance.unmeasured
     static let cellSize = CGSize(width: 48, height: 48)
     static let columns = 4
     static let rows = 3

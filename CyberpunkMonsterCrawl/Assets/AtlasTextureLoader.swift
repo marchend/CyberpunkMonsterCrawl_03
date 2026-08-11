@@ -21,9 +21,20 @@ enum AtlasLoadError: Error, Equatable {
 /// returns -- whole sheet or sliced sub-texture -- has `.filteringMode =
 /// .nearest` and `.usesMipmaps = false` applied uniformly, so pixel art is
 /// never smoothed by SpriteKit's default linear filtering / mipmapping.
+/// THREADING CONTRACT: **main thread only.** `sheetCache` is deliberately
+/// unsynchronized -- SpriteKit scene/texture work in this app runs on the main
+/// thread (see `GameViewController`), and adding a lock or a queue now would
+/// buy nothing while hiding the decision. Concurrent use would race on the
+/// cache dictionary, so any future call site that wants to preload textures off
+/// the main thread must NOT reach for `shared`: it should own its own
+/// `AtlasTextureLoader` instance for the duration of that work (which is
+/// exactly what the tests do), or this class must gain explicit
+/// synchronization in the same change. Decided while the type is new, per PR 4
+/// review.
 final class AtlasTextureLoader {
-    /// Shared instance for production call sites. Tests construct their own
-    /// instance so cache state never leaks between tests.
+    /// Shared instance for production call sites. Main-thread only -- see the
+    /// threading contract above. Tests construct their own instance so cache
+    /// state never leaks between tests.
     static let shared = AtlasTextureLoader()
 
     private var sheetCache: [String: SKTexture] = [:]

@@ -1,9 +1,15 @@
 import CoreGraphics
 
-/// `sprite_player_weapons.png` -- measured 288x120, sliced on a 36x40 cell
-/// grid: 8 columns, one per compass direction, x 3 rows for handgun / SMG /
-/// AR. Weapon overlay cells are drawn on top of the matching `PlayerAtlas`
-/// body cell.
+/// `sprite_player_weapons.png` -- 288x120, sliced on a 36x40 cell grid: 8
+/// columns, one per compass direction, x 3 rows for handgun / SMG / AR.
+/// Weapon overlay cells are drawn on top of the matching `PlayerAtlas` body
+/// cell.
+///
+/// PROVENANCE: `declared`, not measured -- `docs/asset_manifest.json` records
+/// 288x120 / 36x40 / 8x3 for `sprite_player_weapons` as `provenance:
+/// "declared"` (from `docs/bootstrap.md` prose, never reconciled with the
+/// bytes). See `AssetProvenance` and the declared-vs-actual sweep in
+/// `AtlasTextureLoaderTests`.
 ///
 /// This type is deliberately self-contained: it defines its own
 /// `Direction` enum rather than reusing `PlayerAtlas.Direction`, even
@@ -13,6 +19,7 @@ import CoreGraphics
 struct WeaponAtlas: AtlasFamily {
     static let sheetName = "sprite_player_weapons"
     static let sheetSize = CGSize(width: 288, height: 120)
+    static let sheetSizeProvenance = AssetProvenance.declared
     static let cellSize = CGSize(width: 36, height: 40)
     static let columns = 8
     static let rows = 3
