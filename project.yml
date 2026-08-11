@@ -11,17 +11,31 @@ targets:
     type: application
     platform: iOS
     sources: [CyberpunkMonsterCrawl]
-    # XcodeGen manages CyberpunkMonsterCrawl/Info.plist itself (adds the
-    # standard CFBundle* keys automatically) -- do NOT also set
-    # GENERATE_INFOPLIST_FILE/INFOPLIST_FILE by hand, that double-processes
-    # the same file (once via this `info:` block, once as a copied resource
-    # picked up by the `sources:` glob above) and fails with "Multiple
-    # commands produce Info.plist". No UIApplicationSceneManifest key here:
-    # the app uses the legacy (non-scene) AppDelegate.window lifecycle, see
-    # CyberpunkMonsterCrawlApp.swift.
+    # SINGLE SOURCE OF TRUTH for the app's Info.plist. XcodeGen does not adopt
+    # an existing plist -- it GENERATES the file at `path:` from `properties:`
+    # (plus its built-in CFBundle* defaults) and overwrites whatever is on disk
+    # on every `xcodegen generate`. So CyberpunkMonsterCrawl/Info.plist is a
+    # build product: it is gitignored, is not hand-authored, and must never be
+    # hand-edited -- edits there are silently clobbered by ./setup.sh. Add or
+    # bump keys HERE.
+    #
+    # Every key we care about is listed explicitly below rather than left to
+    # XcodeGen's defaults, so a version bump is a real diff in this file
+    # instead of an invisible revert.
+    #
+    # Do NOT also set GENERATE_INFOPLIST_FILE/INFOPLIST_FILE by hand: that
+    # double-processes the same file (once via this `info:` block, once as a
+    # copied resource picked up by the `sources:` glob above) and fails with
+    # "Multiple commands produce Info.plist". No UIApplicationSceneManifest key
+    # here: the app uses the legacy (non-scene) AppDelegate.window lifecycle,
+    # see CyberpunkMonsterCrawlApp.swift.
     info:
       path: CyberpunkMonsterCrawl/Info.plist
       properties:
+        CFBundleDevelopmentRegion: en
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: "1.0"
+        CFBundleVersion: "1"
         UILaunchScreen: {}
         LSRequiresIPhoneOS: true
         UISupportedInterfaceOrientations:
