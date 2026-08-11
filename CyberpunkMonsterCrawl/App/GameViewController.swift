@@ -1,9 +1,11 @@
 import UIKit
 import SpriteKit
 
-/// Hosts the SpriteKit view. Bootstrap-only: presents a single scene with a
-/// centered label. Future PRs replace `GameScene` with the real
-/// menu -> gameplay -> death -> highScores state machine.
+/// Minimal SpriteKit host: presents a single, empty `SKScene` so the app
+/// target is a valid, launchable SpriteKit host. Bootstrap-only -- no
+/// gameplay content. Future PRs replace the empty scene with the real
+/// menu -> gameplay -> death -> highScores state machine and the
+/// world/HUD/overlay layer stack.
 final class GameViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -13,8 +15,9 @@ final class GameViewController: UIViewController {
         skView.ignoresSiblingOrder = true
         view.addSubview(skView)
 
-        let scene = GameScene(size: view.bounds.size)
+        let scene = SKScene(size: view.bounds.size)
         scene.scaleMode = .resizeFill
+        scene.backgroundColor = .black
         skView.presentScene(scene)
     }
 

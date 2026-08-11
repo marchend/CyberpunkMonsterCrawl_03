@@ -36,12 +36,14 @@ xcodebuild test -scheme CyberpunkMonsterCrawl -destination 'platform=iOS Simulat
 project.yml
 setup.sh
 CyberpunkMonsterCrawl/
-  AppDelegate.swift / SceneDelegate.swift   — app entry (implemented)
-  GameViewController.swift                  — hosts SKView (implemented)
-  GameScene.swift                            — Hello-World scene (implemented)
+  Info.plist                                — hand-authored, XcodeGen-managed via `info:` (implemented)
+  App/
+    CyberpunkMonsterCrawlApp.swift           — @main app entry, legacy AppDelegate.window lifecycle (implemented)
+    GameViewController.swift                 — hosts an empty SKView/SKScene (implemented)
+  Assets.xcassets/                           — empty root asset catalog, populated in PR 2 (implemented)
   PrivacyInfo.xcprivacy, *.entitlements      — structural stubs (implemented)
-  Resources/Assets.xcassets/                 — stub AppIcon set (implemented)
-CyberpunkMonsterCrawlTests/                  — one smoke test (implemented)
+CyberpunkMonsterCrawlTests/
+  BootstrapSmokeTests.swift                  — one smoke test (implemented)
 ```
 
 ## Planned architecture (from docs/bootstrap.md)

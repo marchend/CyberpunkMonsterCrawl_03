@@ -1,5 +1,14 @@
 # Bootstrap Plan — CyberpunkMonsterCrawl_03
 
+> **Superseded.** This is the historical plan for the initial ad-hoc
+> bootstrap. CYBERPUN-16-1 PR 1 replaced the `AppDelegate`/`SceneDelegate`/
+> `GameScene` shell described below with the officially specced scaffold
+> (`CyberpunkMonsterCrawl/App/CyberpunkMonsterCrawlApp.swift` +
+> `App/GameViewController.swift`, a hand-authored `Info.plist`, a root
+> `Assets.xcassets`, and `CyberpunkMonsterCrawlTests/BootstrapSmokeTests.swift`).
+> See `AGENT.md`/`CLAUDE.md` → "Current directory structure" for the live
+> layout. Kept here for history only.
+
 ## In scope (this PR)
 
 A runnable iOS Hello-World shell proving the SpriteKit toolchain works. No
