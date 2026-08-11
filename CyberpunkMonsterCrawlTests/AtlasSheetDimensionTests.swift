@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 import XCTest
 @testable import CyberpunkMonsterCrawl
 
@@ -80,24 +81,70 @@ final class AtlasSheetDimensionTests: XCTestCase {
 
     // MARK: - Coverage tripwire
 
-    /// Pins the sweep at exactly the 10 sheet ids the ticket's table names,
-    /// so a sheet can never quietly drop out of this file without a
-    /// failure -- mirrors `AtlasTextureLoaderTests.test_theSweepCoversAllTwentyTwoCommittedImagesetIds`
-    /// for this file's own narrower scope (sheets only, not buildings).
-    func test_thisFileCoversExactlyTheTenTicketSheets() {
-        let coveredSheetNames: Set<String> = [
-            PlayerAtlas.sheetName,
-            WeaponAtlas.sheetName,
-            RaccoonWalkAtlas.sheetName,
-            RaccoonAttackAtlas.sheetName,
-            BulletAtlas.sheetName,
-            PulseAtlas.sheetName,
-            HitPuffAtlas.sheetName,
-            PickupAtlas.sheetName,
-            SignAtlas.sheetName,
-            GroundTileset.sheetName,
-        ]
-        XCTAssertEqual(coveredSheetNames.count, 10, "expected 10 distinct sheet ids -- duplicate or missing sheetName across the ticket's table")
+    /// The sheet ids this file is REQUIRED to gate, derived from the app
+    /// target's own list of `AtlasFamily` conformers plus the one sheet that
+    /// is not an `AtlasFamily` (`GroundTileset`) -- never restated as a
+    /// literal here, so adding a family to `AtlasFamilyUnderContract.all`
+    /// without adding a named test below is a failure rather than a silent
+    /// gap.
+    private static var sheetIdsUnderContract: Set<String> {
+        Set(AtlasFamilyUnderContract.all.map(\.sheetName)).union([GroundTileset.sheetName])
+    }
+
+    /// `sprite_player_walk` -> `test_spritePlayerWalk_measuresAsDeclared`:
+    /// the naming convention every per-sheet test above follows.
+    private static func expectedTestMethodName(forSheetId sheetId: String) -> String {
+        let words = sheetId.split(separator: "_").map(String.init)
+        guard let head = words.first else { return "" }
+        let camelCased = ([head] + words.dropFirst().map { $0.capitalized }).joined()
+        return "test_\(camelCased)_measuresAsDeclared"
+    }
+
+    /// The sheet ids this file ACTUALLY gates, read back off the test methods
+    /// XCTest will run rather than off a hand-written list -- so deleting one
+    /// of the named tests above genuinely removes an entry here.
+    private static var sheetIdsCoveredByNamedTests: Set<String> {
+        let runnableTestNames = defaultTestSuite.tests.map(\.name)
+        return sheetIdsUnderContract.filter { sheetId in
+            let expected = expectedTestMethodName(forSheetId: sheetId)
+            return runnableTestNames.contains { $0.contains(expected) }
+        }
+    }
+
+    /// Real coverage tripwire: every sheet under contract must have its own
+    /// named test in this file, and it fails if one is missing.
+    ///
+    /// The earlier version of this test compared a hand-written literal set
+    /// against the constant `10`, which could only fail if two families
+    /// shared a `sheetName` -- something
+    /// `AtlasTextureLoaderTests.test_theSweepCoversAllTwentyTwoCommittedImagesetIds`
+    /// already pins. Deleting a per-sheet test left it green, i.e. it
+    /// asserted a tautology while reading as coverage. It now compares the
+    /// contract set (derived from `AtlasFamilyUnderContract.all` +
+    /// `GroundTileset`) against the set of per-sheet tests that actually
+    /// exist, so BOTH drop-out directions fail: deleting
+    /// `test_spritePulse_measuresAsDeclared` fails, and landing a tenth
+    /// `AtlasFamily` conformer without a named test here fails too.
+    func test_everySheetUnderContractHasItsOwnNamedTestInThisFile() {
+        let underContract = Self.sheetIdsUnderContract
+        XCTAssertEqual(
+            underContract.count,
+            10,
+            "expected 10 distinct sheet ids -- duplicate or missing sheetName across the ticket's table"
+        )
+
+        let covered = Self.sheetIdsCoveredByNamedTests
+        let missing = underContract.subtracting(covered).sorted()
+        XCTAssertEqual(
+            covered,
+            underContract,
+            """
+            sheet ids under contract with no per-sheet test in this file: \(missing) -- \
+            add `test_<camelCasedSheetId>_measuresAsDeclared` for each (the naming \
+            convention this tripwire reads), e.g. \
+            \(missing.map { Self.expectedTestMethodName(forSheetId: $0) })
+            """
+        )
     }
 
     // MARK: - Helper

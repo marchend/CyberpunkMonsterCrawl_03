@@ -2,13 +2,26 @@ import XCTest
 import SpriteKit
 @testable import CyberpunkMonsterCrawl
 
-/// SCAFFOLDING(CYBERPUN-16-1) -- delete this whole file when the real suites
-/// land (state machine, asset contract, IsoGrid round-trip, depth model).
+/// SCAFFOLDING(CYBERPUN-16-1) -- paired with, and removed with, the empty
+/// placeholder `SKScene` in `App/GameViewController.swift`.
+///
+/// The original trigger was "delete when the real suites land"; the asset
+/// contract half of that HAS now landed (`AtlasTextureLoaderTests` and the
+/// CYBERPUN-16-1-t4 gate suite), so the trigger is restated precisely: this
+/// file exists only for as long as `GameViewController` hosts a placeholder
+/// scene with nothing to assert about. When that placeholder is replaced by a
+/// real scene, this file's link-only check is subsumed by that scene's tests
+/// and BOTH markers go at once. The remaining suites the old comment named
+/// (state machine, IsoGrid round-trip, depth model) are deferred and are NOT
+/// what gates this file's removal.
+///
 /// It is bootstrap-only: it proves the test target builds, links against the
 /// host app target (`TEST_HOST`/`BUNDLE_LOADER` wiring in project.yml), and
 /// runs. It asserts nothing about gameplay because there is no gameplay yet,
 /// so a green run here is NOT evidence of any product gate -- see AGENT.md ->
-/// "Open gates". Grep `SCAFFOLDING(` before closing CYBERPUN-16-1.
+/// "Open gates". Grep `SCAFFOLDING(` before closing CYBERPUN-16-1: this
+/// marker must be deleted, or re-pointed at a live ticket, in the same PR
+/// that closes CYBERPUN-16-1, so it never outlives the ticket that owns it.
 final class BootstrapSmokeTests: XCTestCase {
     func test_bootstrapTargetLinksAgainstHostApp() throws {
         // Instantiating a real app-module type proves `@testable import
