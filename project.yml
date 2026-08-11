@@ -10,6 +10,8 @@ targets:
     sources: [CyberpunkMonsterCrawl]
     settings:
       base:
+        PRODUCT_NAME: $(TARGET_NAME)
+        SWIFT_VERSION: "5.0"
         PRODUCT_BUNDLE_IDENTIFIER: com.example.cyberpunkmonstercrawl
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
