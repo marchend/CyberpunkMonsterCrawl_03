@@ -2,7 +2,7 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "../_ImportedPack/assets/pixelgrit/buildings/building_01.png",
+      "filename" : "building_01.png",
       "scale" : "1x",
       "compression-type" : "none"
     }

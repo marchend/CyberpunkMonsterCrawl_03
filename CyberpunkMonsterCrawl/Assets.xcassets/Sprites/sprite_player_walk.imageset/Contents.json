@@ -2,7 +2,7 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "../_ImportedPack/assets/pixelgrit/sprite_player_walk.png",
+      "filename" : "sprite_player_walk.png",
       "scale" : "1x",
       "compression-type" : "none"
     }

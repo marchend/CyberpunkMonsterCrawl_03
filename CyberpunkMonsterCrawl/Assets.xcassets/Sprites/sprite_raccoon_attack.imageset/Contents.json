@@ -2,7 +2,7 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "../_ImportedPack/assets/pixelgrit/sprite_raccoon_attack.png",
+      "filename" : "sprite_raccoon_attack.png",
       "scale" : "1x",
       "compression-type" : "none"
     }

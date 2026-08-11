@@ -2,7 +2,7 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "../_ImportedPack/assets/pixelgrit/sprite_pickups.png",
+      "filename" : "sprite_pickups.png",
       "scale" : "1x",
       "compression-type" : "none"
     }

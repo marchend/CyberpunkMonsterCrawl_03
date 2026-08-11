@@ -2,7 +2,7 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "../_ImportedPack/assets/pixelgrit/sprite_pulse.png",
+      "filename" : "sprite_pulse.png",
       "scale" : "1x",
       "compression-type" : "none"
     }
