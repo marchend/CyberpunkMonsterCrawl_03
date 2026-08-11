@@ -136,17 +136,30 @@ contract) is partially open under CYBERPUN-16-1:**
   **Nothing may consume a value whose `provenance` is not `measured`**;
   `docs/bootstrap.md` is explicit that grid math is measured, never inferred
   from a filename or a ticket table.
-- No Swift code owns those facts yet (no per-family owning list) and no test
-  fails when a referenced image id or cell is missing from the catalog. That
-  work is the **next sub-task under CYBERPUN-16-1** and depends on this import
-  merging first. It must exist as a real tracked sub-task id (the sibling of
-  CYBERPUN-16-1-t2) before this ticket is closed — a deferral that lives only
-  in this doc line is exactly how gate #2 stayed open in v1. If you cannot find
-  that id in the tracker, create it; do not rely on the phrase "the next PR".
-Until that negative test exists, a green suite says nothing about the catalog —
-this is the exact v1 failure class called out in `docs/bootstrap.md` → "Key
-contracts to establish first" #1. Do not mark the asset gate fully done on the
-strength of the import alone.
+- **CYBERPUN-16-1-t3** (the asset-contract PR, the tracked sibling of
+  CYBERPUN-16-1-t2) adds the Swift code that owns those facts — one value type
+  per sprite family under `CyberpunkMonsterCrawl/Assets/`, plus `GroundTileset`
+  and `BuildingSet` — and the negative test that was missing:
+  `AtlasTextureLoaderTests` resolves all 10 sheet ids and all 12
+  `BuildingSet.definitions` against the real catalog and fails if any one is
+  absent or compiled empty, and reconciles every declared `sheetSize` with the
+  loaded image's actual pixel size. `GroundTilesetTests`,
+  `SheetRowContentTests` and `BuildingSetTests` go further and assert facts
+  about the *pixels* (transparent inter-tile gutters, no blank direction row,
+  real corner alpha rather than `CGImage.alphaInfo`).
+- **The measurement pass is still outstanding.** Every family declares an
+  `AssetProvenance` mirroring the manifest's `provenance` — `.declared` or
+  `.unmeasured`, never `.measured` — and a tripwire test fails if one claims
+  `.measured` while the manifest is `PENDING-MEASUREMENT`. The code therefore no
+  longer asserts a stronger claim than the records support, but the numbers are
+  still working values: run `bash ./verify_assets.sh` on a macOS checkout,
+  record the results and `measured_on` in `docs/asset_manifest.json`, then flip
+  that entry's `provenance` and the family's `sheetSizeProvenance` in one
+  change.
+**Do not close gate #2 on the strength of doc comments** — that is exactly the
+v1 failure class called out in `docs/bootstrap.md` → "Key contracts to establish
+first" #1. The declared-vs-actual test, not a comment, is what makes CI enforce
+the measurements, and it has not yet been run on macOS.
 
 ## `SCAFFOLDING(<ticket>)` markers
 Temporary bootstrap code carries a `SCAFFOLDING(<ticket>)` comment naming the
