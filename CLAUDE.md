@@ -59,7 +59,7 @@ CyberpunkMonsterCrawl/
     Buildings/                               — 12 whole-building-sprite imagesets (CYBERPUN-16-1-t2)
       Contents.json                          — group folder; pins "provides-namespace": false
       building_NN.imageset/Contents.json     — 1x-only, BARE `filename`
-      building_NN.imageset/building_NN.png   — the real bytes, tracked (NN = 00…11)
+      building_NN.imageset/building_NN.png   — the real bytes, tracked (NN = 00–11)
   PrivacyInfo.xcprivacy, *.entitlements      — structural stubs (implemented)
 CyberpunkMonsterCrawlTests/
   BootstrapSmokeTests.swift                  — one smoke test — SCAFFOLDING(CYBERPUN-16-1)
@@ -71,7 +71,7 @@ and every `Contents.json` names it with a **bare `filename`**
 (`"sprite_player_walk.png"`). This is the only form `actool` documents; a path
 or a `../` traversal out of the imageset is undefined behaviour, and the way it
 fails is silent — the catalog still compiles green and the imageset lands in
-`Assets.car` empty, so `SKTexture(imageNamed:)` hands back a 1×1 placeholder at
+`Assets.car` empty, so `SKTexture(imageNamed:)` hands back a 1x1 placeholder at
 runtime. That is the v1 failure this story is sequenced first to prevent
 (`docs/bootstrap.md` → "Key contracts to establish first" #1). An earlier draft
 of this import referenced the bytes out of a shared `_ImportedPack/` staging
@@ -88,7 +88,7 @@ Rules for anyone adding art later:
   `Assets.xcassets/` is gitignored: every file in the catalog is tracked and
   belongs to exactly one imageset, so the asset set is an explicit list rather
   than whatever survives an ignore rule.
-- **1× only.** No `@2x`/`@3x` renditions, ever (art is authored once at 1×), and
+- **1x only.** No `@2x`/`@3x` renditions, ever (art is authored once at 1x), and
   `"compression-type": "none"` because the art is lossless pixel art.
 - `Sprites/Contents.json` and `Buildings/Contents.json` pin
   `"provides-namespace": false`. Leave it pinned: flipping it to `true` silently
@@ -136,17 +136,65 @@ contract) is partially open under CYBERPUN-16-1:**
   **Nothing may consume a value whose `provenance` is not `measured`**;
   `docs/bootstrap.md` is explicit that grid math is measured, never inferred
   from a filename or a ticket table.
-- No Swift code owns those facts yet (no per-family owning list) and no test
-  fails when a referenced image id or cell is missing from the catalog. That
-  work is the **next sub-task under CYBERPUN-16-1** and depends on this import
-  merging first. It must exist as a real tracked sub-task id (the sibling of
-  CYBERPUN-16-1-t2) before this ticket is closed — a deferral that lives only
-  in this doc line is exactly how gate #2 stayed open in v1. If you cannot find
-  that id in the tracker, create it; do not rely on the phrase "the next PR".
-Until that negative test exists, a green suite says nothing about the catalog —
-this is the exact v1 failure class called out in `docs/bootstrap.md` → "Key
-contracts to establish first" #1. Do not mark the asset gate fully done on the
-strength of the import alone.
+- **CYBERPUN-16-1-t3** (the asset-contract PR, the tracked sibling of
+  CYBERPUN-16-1-t2) adds the Swift code that owns those facts — one value type
+  per sprite family under `CyberpunkMonsterCrawl/Assets/`, plus `GroundTileset`
+  and `BuildingSet` — and the negative test that was missing:
+  `AtlasTextureLoaderTests` resolves all 10 sheet ids and all 12
+  `BuildingSet.definitions` against the real catalog and fails if any one is
+  absent or compiled empty, and reconciles every declared `sheetSize` with the
+  loaded image's actual pixel size. `GroundTilesetTests`,
+  `SheetRowContentTests` and `BuildingSetTests` go further and assert facts
+  about the *pixels* (transparent inter-tile gutters, no blank direction row,
+  real corner alpha rather than `CGImage.alphaInfo`).
+- **CYBERPUN-16-1-t4** adds the ticket's own explicit, adversarial gate suite
+  on top of the above (test-only, no production code changes):
+  `AtlasSheetDimensionTests` (one named test per sheet against the ticket's
+  table), `AtlasCellBoundsTests` (every family's every declared index resolves
+  in-bounds, plus an explicit one-row/one-col/negative out-of-range probe per
+  family checked against both the type and the loader), `TextureFilteringGateTests`
+  (catalog-wide nearest-filtering/no-mipmaps sweep over every sheet, cell,
+  ground diamond, and building -- buildings loaded through
+  `AtlasTextureLoader` even though production code does not route them
+  through it today), and `MissingAssetNegativeTests` (proves the throwing
+  mechanism itself against a synthetic bogus id; the dimension/building
+  sweeps above are what actually fail if a *real* id is deleted or renamed).
+  `ImageAlphaInspector` is a thin façade over `PixelProbe` exposing the two
+  whole-image alpha questions (`hasAnyNonOpaquePixel` / `hasAnyPaintedPixel`,
+  both now on `PixelProbe` itself). It owns no pixel handling: there is
+  exactly ONE rasterizer in the test target, in `PixelProbe`, so a future fix
+  to it (a `bytesPerRow` alignment case, an `actool` colour-space surprise)
+  reaches every alpha assertion.
+- **This suite deliberately re-covers ground the t2 suites already hold**
+  (dimension reconciliation, out-of-bounds throws, nearest filtering,
+  missing-asset throws, building corner alpha). That is a real maintenance
+  cost, and it makes "which single test is THE gate for requirement X?"
+  harder to answer. Two rules keep it honest: each t4 file's header names the
+  existing test it duplicates and says what it adds beyond it, and no t4 test
+  may claim more than its assertions prove. If a t4 file stops adding
+  anything beyond the t2 test it names, fold it in and delete it rather than
+  keeping a second copy. `AtlasCellBoundsTests`' out-of-range probes and
+  `MissingAssetNegativeTests` are the two standing candidates for that fold.
+- **Adding test files is not evidence.** Nothing in this suite has ever been
+  executed: this workspace has no macOS/Xcode, so `verify_assets.sh`'s
+  `sips`/`actool` stages are unexercised and five of the ten declared sheet
+  sizes are `unmeasured` working values. `AtlasSheetDimensionTests` is
+  therefore LIKELY TO GO RED on the first real CI run — that is the suite
+  working as designed, and it means "merged" ≠ "gate #2 closed". Do not let
+  the file count in this ticket read as a closed gate.
+- **The measurement pass is still outstanding.** Every family declares an
+  `AssetProvenance` mirroring the manifest's `provenance` — `.declared` or
+  `.unmeasured`, never `.measured` — and a tripwire test fails if one claims
+  `.measured` while the manifest is `PENDING-MEASUREMENT`. The code therefore no
+  longer asserts a stronger claim than the records support, but the numbers are
+  still working values: run `bash ./verify_assets.sh` on a macOS checkout,
+  record the results and `measured_on` in `docs/asset_manifest.json`, then flip
+  that entry's `provenance` and the family's `sheetSizeProvenance` in one
+  change.
+**Do not close gate #2 on the strength of doc comments** — that is exactly the
+v1 failure class called out in `docs/bootstrap.md` → "Key contracts to establish
+first" #1. The declared-vs-actual test, not a comment, is what makes CI enforce
+the measurements, and it has not yet been run on macOS.
 
 ## `SCAFFOLDING(<ticket>)` markers
 Temporary bootstrap code carries a `SCAFFOLDING(<ticket>)` comment naming the
@@ -157,15 +205,24 @@ both owned by CYBERPUN-16-1's remaining work:
 - the link-only smoke test in
   `CyberpunkMonsterCrawlTests/BootstrapSmokeTests.swift`
 
-If that follow-up work is split out into its own ticket, re-point the markers
-at the new id in the same PR so they never dangle.
+**These two are a pair and are removed together.** The smoke test's original
+trigger read "delete when the real suites land"; the asset-contract suites
+have now landed (CYBERPUN-16-1-t2/-t4), so the trigger is restated on the file
+itself: it exists only while `GameViewController` hosts a placeholder scene
+with nothing to assert about. Replacing that placeholder retires both markers.
+
+**Hard pre-close check for CYBERPUN-16-1:** `grep -rn 'SCAFFOLDING(' .` must
+return no `CYBERPUN-16-1` hits in the PR that closes the ticket. If the
+placeholder-scene work is split out into its own ticket, re-point BOTH markers
+at that new id in the same PR — a marker naming a closed ticket is a dangling
+marker and nobody owns its removal.
 
 ## Planned architecture (from docs/bootstrap.md)
 - `GameState` machine: `menu → gameplay → death → highScores` (deferred)
 - Menu scene with working PLAY button (deferred)
 - Three-layer node stack `worldLayer < hudLayer < overlayLayer` with an
   ordering-invariant test (deferred)
-- `IsoGrid`: 96×48 2:1-diamond tiles, round-trip tile↔screen conversion,
+- `IsoGrid`: 96x48 2:1-diamond tiles, round-trip tile↔screen conversion,
   pixel-perfect rendering helpers (integer scale, device-pixel snapping,
   nearest-neighbour filtering) (deferred)
 - Asset contract: 10 atlas sheets + 12 building imagesets, one owning list
@@ -174,7 +231,7 @@ at the new id in the same PR so they never dangle.
 - Depth model: bands of `-(tileX+tileY)*10`, ground plane 5000 below all
   bands, buildings keyed off far corner, actor tile rounding, player drawn
   last in its band (deferred)
-- City lattice: 3×3 building blocks separated by 3-tile street corridors on
+- City lattice: 3x3 building blocks separated by 3-tile street corridors on
   a 6-tile period; street corridor is the navmesh; deterministic
   `(tileX, tileY, seed)` generation (deferred)
 - Injectable dice roller for testable combat (deferred)

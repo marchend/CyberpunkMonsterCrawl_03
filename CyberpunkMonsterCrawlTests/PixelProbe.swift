@@ -106,6 +106,25 @@ struct PixelProbe {
         CGSize(width: width, height: height)
     }
 
+    /// The whole image as a rect, for the whole-image questions below.
+    var wholeImageRect: CGRect {
+        CGRect(origin: .zero, size: pixelSize)
+    }
+
+    /// Whether ANY pixel in the whole image has alpha < 255 -- the direct,
+    /// pixel-level "transparency was preserved through import rather than
+    /// flattened to opaque" fact. Unlike `CGImage.alphaInfo != .none`, which
+    /// only says an alpha channel EXISTS, this says a pixel actually uses it.
+    var hasAnyNonOpaquePixel: Bool {
+        hasNonOpaquePixel(in: wholeImageRect)
+    }
+
+    /// Whether ANY pixel in the whole image has alpha > 0 -- the "this is not
+    /// an empty imageset rendered as a blank canvas" fact.
+    var hasAnyPaintedPixel: Bool {
+        hasNonTransparentPixel(in: wholeImageRect)
+    }
+
     /// Alpha of the pixel at `(x, y)`, top-left origin, y-down. Out-of-range
     /// coordinates read as fully transparent so callers can probe a rect that
     /// overhangs the sheet without trapping.
