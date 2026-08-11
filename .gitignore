@@ -20,3 +20,26 @@ Pods/
 # Swift Package Manager
 .swiftpm/
 .build/
+
+# --- CYBERPUN-16-1-t2: asset-pack extraction scratch (OUTSIDE the catalog) ---
+# Unpacking the attached asset pack lands all 33 pack entries at once, so the
+# zip is always extracted into one of these repo-root scratch dirs and the
+# wanted files are then `git mv`d into their own `<name>.imageset/` folder.
+#
+# Deliberately NOTHING under CyberpunkMonsterCrawl/Assets.xcassets/ is ignored:
+#   * the committed asset set is defined POSITIVELY -- every file inside the
+#     catalog is tracked and belongs to exactly one imageset (22 PNGs, one per
+#     imageset, bare `filename` in its own Contents.json). It is no longer
+#     defined by subtraction, so a new or corrected sheet dropped into the
+#     catalog can never be silently skipped by `git add`;
+#   * `actool` compiles the catalog from DISK, not from git, so unpacking into
+#     the catalog and hiding the surplus behind ignore rules produces local
+#     warnings/errors (unassigned content) that CI never reproduces. Extract
+#     here instead, never inside `Assets.xcassets/`.
+#
+# Never-imported pack entries (docs/bootstrap.md "Explicitly deferred") --
+# `assets/screens/` UI mockups, `tileset_structure.png`, and the buildings/
+# duplicates -- are simply never moved out of scratch, so no ignore rule has
+# to carry that decision.
+/tmp_assets_extract/
+/tmp_probe/
